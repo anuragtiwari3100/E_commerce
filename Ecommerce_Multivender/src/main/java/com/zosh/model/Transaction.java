@@ -26,7 +26,7 @@ public class Transaction {
     @OneToOne
     private Order order;
 
-    @ManyToMany
+    @ManyToOne
     private  Seller seller;
 
     private LocalDateTime date= LocalDateTime.now();

@@ -1,61 +1,67 @@
 package com.zosh.model;
 
-
-import jakarta.persistence.*;
-import lombok.*;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
+
+import lombok.*;
 
 @Entity
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode
-public class Product {
 
+public class Product {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private  Long id;
+    private Long id;
 
-    private  String title;
+    private String title;
 
-    private  int mrpPrice;
+    private String description;
 
-    private  int  sellingPrice;
+    private int mrpPrice;
 
-    private  int discountPercent;
+    private int sellingPrice;
 
-    private  int quantity;
+    private int discountPercent;
 
-    private  String color;
+    private int quantity;
+
+    private String color;
 
     @ElementCollection
-    private List<String> images = new ArrayList<>();
+    private List<String> images =new ArrayList<>();
 
     private int numRatings;
 
     @ManyToOne
-    private  Category  category;
+    private Category category;
 
-    private  Seller  seller;
+    @ManyToOne
+    private Seller seller;
 
     private LocalDateTime createdAt;
 
-    private  String Sizes;
+//    //    @ElementCollection
+//    private String Sizes;
+
+    @ElementCollection
+    private List<String> sizes = new ArrayList<>();
+
 
     @OneToMany(mappedBy = "product",cascade = CascadeType.ALL,orphanRemoval = true)
-    private  List<Review> reviews = new ArrayList<>();
+    private List<Review> reviews = new ArrayList<>();
 
-
-
-
-
-
-
-
-
+    private boolean in_stock = true;
 }

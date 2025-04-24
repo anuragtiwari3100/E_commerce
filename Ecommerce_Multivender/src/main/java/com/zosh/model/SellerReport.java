@@ -1,9 +1,6 @@
 package com.zosh.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
@@ -18,7 +15,7 @@ public class SellerReport {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
+    @OneToOne
     private Seller seller;
 
     private  Long totalEarnings = 0L;
