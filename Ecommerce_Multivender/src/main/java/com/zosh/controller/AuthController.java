@@ -2,7 +2,10 @@ package com.zosh.controller;
 
 import com.zosh.domain.USER_ROLE;
 import com.zosh.model.User;
+import com.zosh.model.VerificationCode;
 import com.zosh.repository.UserRepository;
+import com.zosh.request.LoginRequest;
+import com.zosh.response.ApiResponse;
 import com.zosh.response.AuthResponse;
 import com.zosh.response.SignupRequest;
 import com.zosh.service.AuthService;
@@ -24,7 +27,7 @@ public class AuthController {
     private  final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<AuthResponse>  createUserHandler(@RequestBody SignupRequest req){
+    public ResponseEntity<AuthResponse>  createUserHandler(@RequestBody SignupRequest req) throws Exception {
 
    String jwt = authService.createUser(req);
         AuthResponse res = new AuthResponse();
@@ -33,5 +36,20 @@ public class AuthController {
         res.setRole(USER_ROLE.ROLE_CUSTOMER);
 
     return  ResponseEntity.ok(res);
+    }
+
+    @PostMapping("/sent/login/-signup-otp")
+    public ResponseEntity<ApiResponse>  sendOtpHandler(@RequestBody VerificationCode req) throws Exception {
+       authService.sentLoginOtp(req.getEmail());
+        ApiResponse res = new ApiResponse();
+        res.setMessage("otp sent successfully");
+        return  ResponseEntity.ok(res);
+    }
+
+    @PostMapping("/signing")
+    public ResponseEntity<AuthResponse>  loginHandler(@RequestBody LoginRequest req) throws Exception {
+        authService.signing(req);
+        AuthResponse authResponse = authService.signing(req);
+        return  ResponseEntity.ok(authResponse);
     }
 }
