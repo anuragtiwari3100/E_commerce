@@ -3,9 +3,11 @@ package com.zosh.service.impl;
 import com.zosh.config.JwtProvider;
 import com.zosh.domain.USER_ROLE;
 import com.zosh.model.Cart;
+import com.zosh.model.Seller;
 import com.zosh.model.User;
 import com.zosh.model.VerificationCode;
 import com.zosh.repository.CartRepository;
+import com.zosh.repository.SellerRepository;
 import com.zosh.repository.UserRepository;
 import com.zosh.repository.VarificationCodeRepository;
 import com.zosh.request.LoginRequest;
@@ -34,25 +36,34 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
-   private final UserRepository userRepository;
-   private final PasswordEncoder passwordEncoder;
-   private  final CartRepository cartRepository;
-   private final JwtProvider jwtProvider;
-   private  final VarificationCodeRepository varificationCodeRepository;
-   private  final EmailService emailService;
-   private  final  CustomUserServiceImpl customUserService;
+    private final UserRepository userRepository;
+    private final SellerRepository sellerRepository;
+    private final PasswordEncoder passwordEncoder;
+    private  final CartRepository cartRepository;
+    private final JwtProvider jwtProvider;
+    private  final VarificationCodeRepository varificationCodeRepository;
+    private  final EmailService emailService;
+    private  final  CustomUserServiceImpl customUserService;
     @Override
-    public void sentLoginOtp(String email) throws Exception {
-        String SIGNIN_PREFIX ="signin_";
-        if(email.startsWith(SIGNIN_PREFIX)){
-            email = email.substring(SIGNIN_PREFIX.length());
-            User user = userRepository.findByEmail(email);
-            if(user == null){
-                throw  new Exception("User doesn't exists with provided email");
+    public void sentLoginOtp(String email, USER_ROLE role) throws Exception {
+        String SIGNING_PREFIX = "signin_";
+        if(email.startsWith(SIGNING_PREFIX)){
+            email = email.substring(SIGNING_PREFIX.length());
+
+            if(role.equals(USER_ROLE.ROLE_SELLER)){
+                Seller  seller = sellerRepository.findByEmail(email);
+                if(seller == null){
+                    throw new Exception(("seller not  found"));
+                }
+            }else{
+                User user = userRepository.findByEmail(email);
+                if(user == null){
+                    throw  new Exception("User doesn't exists with provided email");
+                }
             }
 
         }
-   VerificationCode isExist =varificationCodeRepository.findByEmail(email);
+        VerificationCode isExist =varificationCodeRepository.findByEmail(email);
         if(isExist != null){
             varificationCodeRepository.delete(isExist);
         }
@@ -105,31 +116,31 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse signing(LoginRequest req) {
-   String username =  req.getEmail();
-   String otp = req.getOtp();
+        String username =  req.getEmail();
+        String otp = req.getOtp();
 
-   Authentication authentication = authenticate(username,otp);
-      SecurityContextHolder.getContext().setAuthentication(authentication);
-       String token  = jwtProvider.generateToken(authentication);
-       AuthResponse authResponse = new AuthResponse();
+        Authentication authentication = authenticate(username,otp);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String token  = jwtProvider.generateToken(authentication);
+        AuthResponse authResponse = new AuthResponse();
         authResponse.setJwt(token);
         authResponse.setMessage("Login success");
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-       String roleName = authorities.isEmpty()?null:authorities.iterator().next().getAuthority();
+        String roleName = authorities.isEmpty()?null:authorities.iterator().next().getAuthority();
 
-       authResponse.setRole(USER_ROLE.valueOf(roleName));
+        authResponse.setRole(USER_ROLE.valueOf(roleName));
         return authResponse;
     }
 
     private Authentication authenticate(String username, String otp) {
-      UserDetails userDetails= customUserService.loadUserByUsername(username);
-       if(userDetails == null){
-           throw new BadCredentialsException("invalid username ");
-       }
+        UserDetails userDetails= customUserService.loadUserByUsername(username);
+        if(userDetails == null){
+            throw new BadCredentialsException("invalid username ");
+        }
         VerificationCode verificationCode = varificationCodeRepository.findByEmail(username);
         if(verificationCode == null || !verificationCode.getOtp().equals(otp) ){
             throw  new BadCredentialsException("Wrong otp");
         }
-       return  new UsernamePasswordAuthenticationToken(userDetails, null,userDetails.getAuthorities());
+        return  new UsernamePasswordAuthenticationToken(userDetails, null,userDetails.getAuthorities());
     }
 }
